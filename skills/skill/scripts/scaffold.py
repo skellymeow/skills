@@ -27,7 +27,7 @@ metadata:
 
 ## Purpose
 
-Deliver the finished {name} outcome, not merely instructions. Keep this paragraph domain-specific before shipping the skill.
+Deliver the finished {name} outcome, not merely instructions. Replace this generic sentence with the exact domain promise before publishing the skill.
 
 ## Requirements
 
@@ -48,10 +48,10 @@ Deliver the finished {name} outcome, not merely instructions. Keep this paragrap
 ## Examples
 
 ```text
-/{name} <one realistic user request>
+/{name} complete the requested {name} task and return the finished result
 ```
 
-Replace the placeholder with at least one realistic invocation that demonstrates routing and the finished output.
+Before publishing, replace this generic example with at least one realistic domain request that demonstrates routing and the finished output.
 
 ## Error Handling
 
