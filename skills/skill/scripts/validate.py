@@ -12,7 +12,11 @@ import sys
 from pathlib import Path
 
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-REF_RE = re.compile(r"(?<![\w./-])((?:references|scripts|templates|assets)/[A-Za-z0-9._/\-]+)")
+# Only treat explicit file-like references as paths. This deliberately ignores prose
+# such as "scripts/CLIs" and directory mentions such as "references/".
+REF_RE = re.compile(
+    r"(?<![\w./-])((?:references|scripts|templates|assets)/(?:[A-Za-z0-9._-]+/)*[A-Za-z0-9._-]+\.[A-Za-z0-9]{1,12})"
+)
 ABS_PATH_RE = re.compile(r"(?:[A-Za-z]:\\Users\\[^\s`]+|/Users/[^\s`]+|/home/[^\s`]+)")
 SECRET_RE = re.compile(
     r"(?i)(?:api[_-]?key|token|password|secret)\s*[:=]\s*[\"']?(?!your-|<|\$\{|\{\{|example|placeholder)([A-Za-z0-9_\-./+=]{12,})"
