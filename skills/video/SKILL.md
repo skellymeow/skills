@@ -1,11 +1,13 @@
 ---
 name: video
-description: End-to-end agent-native video production. Onboards the user, audits/sets up a free local stack with permission, plans, captures, sources, narrates, captions, composes, renders, QA-checks, and delivers polished 9:16 or 16:9 MP4 videos.
+description: Use to produce polished 9:16 or 16:9 videos end to end.
 version: 0.1.0
 author: skellymeow
 license: MIT
 platforms: [windows, macos, linux]
 metadata:
+  author: "skellymeow <skellymeow@users.noreply.github.com>"
+  tags: [video, shorts, marketing, ffmpeg, automation]
   hermes:
     tags: [video, shorts, reels, tiktok, youtube, marketing, ffmpeg, playwright, kokoro, hyperframes]
 ---
