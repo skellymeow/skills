@@ -1,7 +1,7 @@
 ---
 name: skill
-description: Use to build and improve production-grade Hermes capability skills.
-version: 0.1.0
+description: Use when creating, improving, packaging, or testing a Hermes skill that must be simple, installable, and verifiable.
+version: 0.2.0
 author: skellymeow
 license: MIT
 platforms: [windows, macos, linux]
@@ -15,135 +15,237 @@ metadata:
 
 # /skill
 
-You are the skill architect for Hermes Agent. Build capabilities that feel native, simple, reliable, and easy to install.
+## Purpose
 
-The default unit is a **domain capability pack**: one slash command such as `/video`, `/blog`, `/research`, or `/outreach` that routes internally to focused workflows. Do not create dozens of tiny slash commands when one coherent domain router is better.
+`/skill` turns a capability idea or existing workflow into a production-ready Hermes skill with the least complexity needed to deliver the outcome reliably. It also audits and improves existing skills without erasing useful behavior.
 
-## `/skill` vs Hermes `/learn`
+The default unit is a **domain capability pack**: one memorable slash command such as `/video`, `/blog`, `/research`, or `/outreach` with a few internal routes. Do not create dozens of tiny commands when one coherent domain skill is easier to use and maintain.
 
-Hermes already has a native `/learn` capability for turning source material or a just-completed workflow into a reusable knowledge skill. Do not rebuild that unnecessarily.
+## Requirements
 
-Use **`/learn`** when the job is primarily source/workflow ingestion and distilled knowledge.
+- Hermes access to the target skill files and terminal/file tools.
+- Python 3 for the included scaffolder and local validator.
+- No API key, MCP server, package install, or network access is required to create a normal instruction-based skill.
+- External services are requirements only when the capability itself genuinely needs them. Document and permission-gate those dependencies instead of assuming them.
 
-Use **`/skill`** when the job is capability engineering: domain routing, onboarding, environment preflight, deterministic scripts/CLIs, external integrations, permission gates, fallbacks, artifact delivery, and objective QA.
+## Instructions
 
-A capability may use both: `/learn` can distill deep reference knowledge while `/skill` packages the executable domain around it.
+### 1. Choose the right mode
 
-## Entry modes
-
-Route the request into one of these modes:
+Route the request into one mode:
 
 1. **Create** - turn an idea into a complete new skill.
-2. **Improve** - audit and upgrade an existing skill.
+2. **Improve** - read an existing skill, preserve useful behavior, and repair concrete weaknesses.
 3. **Package** - make an existing workflow installable and documented.
-4. **Test** - validate a skill and report concrete failures.
-5. **Ideate** - propose the highest-leverage capability packs for a stated job or agent.
+4. **Test** - validate a skill and report exact failures with proof.
+5. **Ideate** - propose the highest-value capability packs for a stated job or agent.
 
-If the user supplied enough information, do not interview them. Infer sensible defaults and proceed.
+If the user already supplied enough information, do not interview them again. Infer safe defaults and proceed.
 
-## The formula
+### 2. Check `/learn` before rebuilding it
 
-Before authoring anything, read `references/formula.md`.
+Hermes `/learn` is appropriate when the job is mainly turning source material or a completed workflow into reusable knowledge.
 
-For every proposed capability, decide the correct layer:
+Use `/skill` when the job needs capability engineering: routing, onboarding, environment checks, deterministic helpers, external integrations, permission gates, fallbacks, artifact delivery, and objective QA.
 
-- **Skill instructions** for judgment, routing, creative/process knowledge, onboarding, and tool choice.
-- **Small deterministic scripts/CLIs** for fragile repeatable operations, parsing, rendering, validation, transforms, or machine checks.
-- **MCP/API integration** only when the capability genuinely needs a persistent external service/tool boundary, auth surface, remote resource, or structured callable interface.
+A capability may use both. `/learn` can distill deep knowledge while `/skill` packages the executable workflow around it.
+
+### 3. Read the architecture formula
+
+Before designing or materially rewriting a skill, read `references/formula.md`.
+
+Choose the least-complex layer that reliably delivers the promised result:
+
+- **Skill instructions** for judgment, routing, process knowledge, onboarding, and tool choice.
+- **Small deterministic scripts/CLIs** for fragile repeatable operations, parsing, rendering, validation, or transforms.
+- **MCP/API integration** only when the capability needs a real external service boundary, structured remote resource, auth surface, or callable interface.
 - **Native Hermes code** only when the capability cannot reasonably live as a skill/tool wrapper.
 
-Prefer the least-complex layer that can reliably deliver the user's finished outcome.
+Do not invent dependencies just to make a skill look sophisticated.
 
-## Build contract
+### 4. Define the contract before writing files
 
-A production skill should normally contain:
+Write down four things internally before implementation:
+
+- **Trigger:** when this skill should be used, including obvious non-use cases when ambiguity exists.
+- **Deliverable:** the artifact or state that must exist when the command succeeds.
+- **Inputs:** only the choices/data that materially affect execution.
+- **Proof:** objective checks that demonstrate success.
+
+Then choose one short domain command and map the few distinct user intents it needs to handle.
+
+### 5. Build with progressive disclosure
+
+A production skill normally looks like:
 
 ```text
 skills/<name>/
-  SKILL.md                 # small router + non-negotiable contract
-  references/              # deep knowledge loaded only when needed
-    onboarding.md          # only when discovery/setup is useful
-    workflows.md           # domain routes and execution playbooks
-    setup.md               # dependencies/providers, free-first
-    quality.md             # objective completion gate
-  scripts/                 # only deterministic helpers that earn their keep
-  templates/               # optional reusable structures, never mandatory boilerplate
-  assets/                  # optional static resources
+  SKILL.md
+  references/
+    onboarding.md      # only when missing choices matter
+    workflows.md       # domain routes and execution playbooks
+    setup.md           # real dependencies/providers/fallbacks
+    quality.md         # objective completion gate
+  scripts/             # only deterministic helpers that earn their keep
+  templates/           # optional reusable structures
+  assets/              # optional static resources
 ```
 
-Do not create empty folders or files just to match this tree.
+Do not create empty folders or boilerplate files merely to match the tree.
 
-## Authoring workflow
+Keep `SKILL.md` as the control plane:
 
-1. **Define the deliverable** - what finished artifact or state must exist when the skill succeeds?
-2. **Choose one domain command** - short, memorable, noun/verb appropriate to the capability.
-3. **Map entry intents** - the few distinct jobs the user will ask this command to perform.
-4. **Audit available capabilities** - reuse Hermes/native tools, `/learn`, and existing CLIs before adding dependencies.
-5. **Design free/local baseline** where reasonable; paid providers are optional upgrades, not hidden requirements.
-6. **Design onboarding** only for missing consequential choices. Never ask for information already supplied.
-7. **Move depth out of `SKILL.md`** into references so normal invocations stay cheap and focused.
-8. **Add scripts only for deterministic operations** where prose would be fragile.
-9. **Add permission gates** before installs, spending, destructive changes, credential use, publishing, or external side effects.
-10. **Define objective QA** so success means a verified deliverable, not "the command ran".
-11. **Scaffold/write the skill**. `scripts/scaffold.py` is available when useful.
-12. **Validate it** using `scripts/validate.py` before calling it finished.
-13. **Test at least one realistic invocation mentally or with available tools** and repair obvious dead paths.
-
-If improving an existing skill, do not blindly replace it. Read the current files first, preserve user-authored behavior that still matters, and make a backup before a structural rewrite.
-
-## Progressive disclosure
-
-`SKILL.md` is the control plane, not the encyclopedia.
-
-Keep in it:
-- identity and deliverable
+- purpose and trigger
 - routing
 - required preflight
-- non-negotiable safety/quality rules
-- which references to load
-- final completion contract
+- permission/safety rules
+- references to load
+- helper invocation
+- completion contract
 
-Put detailed provider instructions, examples, platform-specific setup, long workflows, style systems, and niche knowledge in `references/`.
+Move detailed provider instructions, examples, platform-specific setup, long workflows, style systems, and niche knowledge into `references/`.
 
-## Onboarding standard
+### 6. Add dependencies only when they improve the real outcome
 
-If onboarding is useful, it should feel like a tiny product UI in chat:
+Before adding any package, CLI, API, MCP server, model, or service:
 
-- ask only the 1-3 choices that materially change execution
+1. check whether Hermes/native tools already solve the operation
+2. check whether a small local helper is enough
+3. document detection and fallback behavior
+4. ask permission before installs, paid calls, publishing, sending, deployment, destructive changes, credential use, or other consequential side effects
+
+Free/local options are good defaults when they are practical, not dogma. Never call an unverified provider free, installed, licensed, or available.
+
+### 7. Make onboarding small
+
+When onboarding is necessary:
+
+- ask only 1-3 choices that materially change execution
 - offer concrete options and a recommended default
-- inspect the machine automatically when possible instead of asking technical questions
-- ask before installing anything
-- explain paid/free tradeoffs before money is spent
-- once enough information exists, stop asking and execute
+- inspect the machine automatically instead of asking whether tools are installed
+- never re-ask information already supplied
+- stop asking once enough information exists and execute
 
-## Quality standard
+### 8. Implement the skill
 
-Read `references/quality.md` before finalizing a skill.
+For a new skill, `scripts/scaffold.py` can create a minimal starting structure. Replace its placeholders with real domain behavior instead of shipping the scaffold unchanged.
 
-At minimum, verify:
-- the slash command maps to one coherent capability domain
+For an existing skill:
+
+- read all files that affect its behavior before rewriting
+- preserve user-authored rules that still matter
+- prefer targeted structural improvements over wholesale replacement
+- make a backup when a local destructive rewrite is necessary
+
+Helper scripts must have a documented invocation path, deterministic inputs/outputs where practical, useful exit codes/errors, and no embedded secrets.
+
+Hermes should execute helpers through terminal commands exactly as documented. On another compatible agent host that exposes a `run_script` execution primitive, the same helper and arguments may be passed to that runner. Do not make `run_script` a Hermes requirement.
+
+### 9. Validate behavior, not just formatting
+
+Read `references/quality.md` before finalizing.
+
+At minimum verify:
+
+- command and description clearly match one domain
 - every referenced file exists
-- no imaginary CLI/package/API is treated as installed or free without verification
-- helper scripts have a clear usage path
-- dependencies have setup/fallback behavior
+- helper syntax passes where tooling exists
+- dependencies have detection, setup, and fallback behavior
 - secrets are never hardcoded or printed
-- installs/spend/destructive actions require permission
-- success is defined by an observable artifact/state
-- instructions do not force needless user questions
-- the skill can degrade gracefully when optional providers are unavailable
+- consequential side effects require permission
+- error paths do not silently claim success
+- the skill can degrade gracefully when optional providers are missing
+- completion is observable
+- at least one realistic invocation has been exercised mentally or with available tools
 
-Run:
+Run the local validator:
 
 ```bash
 python "${HERMES_SKILL_DIR}/scripts/validate.py" <path-to-skill>
 ```
 
-Fix failures before saying the skill is ready.
+If NVIDIA SkillEvaluator is already installed, its deterministic Tier 1 checks can be used as an additional portability/security check. Do not change useful Hermes behavior merely to satisfy an external heuristic.
 
-## Output behavior
+### 10. Deliver the actual capability
 
-When asked to create a skill, produce the actual files whenever filesystem/repo tools are available. Prefer Hermes-native skill writing/management when available. Do not stop at a design document unless the user explicitly requested only planning.
+When filesystem/repo tools are available and the user asked to create or improve a skill, produce the files. Do not stop at a design document unless planning was explicitly requested.
 
-When invoked from `/init`, treat the supplied evidence as the product brief. Build only candidates the user approved, preserve the evidence-backed workflow, and do not add unrelated features.
+When invoked from `/init`, treat its evidence as the product brief. Build only approved or `auto`-authorized candidates, preserve evidence-backed workflow behavior, and do not add unrelated features.
 
-A skill is complete when it is **installable, understandable, executable with the documented baseline, and passes validation**.
+A skill is complete only when it is **installable, understandable, executable with its documented baseline, and passes its real validation contract**.
+
+## Available Scripts
+
+| Script | Purpose | Arguments |
+| --- | --- | --- |
+| `scripts/scaffold.py` | Create a minimal domain-skill directory and starter references. | Required `--name`, `--description`; optional `--author`, `--root`; `--force` only for an intentional overwrite. |
+| `scripts/validate.py` | Run read-only static checks for frontmatter, referenced paths, obvious secrets, and Python/JavaScript syntax. | Positional `<skill_dir>`; optional `--json`. |
+
+Typical scaffold:
+
+```bash
+python "${HERMES_SKILL_DIR}/scripts/scaffold.py" --name blog --description "Use when producing a sourced article and publish-ready package." --author skellymeow
+```
+
+Typical validation:
+
+```bash
+python "${HERMES_SKILL_DIR}/scripts/validate.py" "$HERMES_HOME/skills/blog"
+```
+
+## Examples
+
+**Create a capability**
+
+```text
+/skill make me a /blog skill that researches, writes, sources licensed stock images, validates links, and returns a publish-ready folder
+```
+
+Expected behavior: choose the minimal architecture, inspect existing tools before adding dependencies, create the actual files, and validate the result.
+
+**Improve without replacement**
+
+```text
+/skill improve ~/.hermes/skills/video - keep its existing workflows but make failure handling and QA reliable
+```
+
+Expected behavior: read the current files first, identify concrete gaps, preserve useful behavior, patch the skill, and prove validation.
+
+**Test only**
+
+```text
+/skill test ~/.hermes/skills/outreach
+```
+
+Expected behavior: make no behavioral rewrite unless requested; report exact validation or dead-path failures with remediation.
+
+## Error Handling
+
+- Never claim a dependency, integration, or command works without available proof.
+- If scaffolding would overwrite an existing skill, stop unless overwrite was explicitly authorized.
+- If validation fails, report the failing path/check and repair it when the user asked for improvement. Do not hide failures behind a successful process exit elsewhere.
+- If an external API/MCP integration is optional and unavailable, use the documented local/native fallback when one exists.
+- If the required external integration is unavailable, keep the partial artifact reproducible and identify the single missing dependency instead of silently substituting an unrelated service.
+
+## Troubleshooting
+
+| Problem | Likely cause | Response |
+| --- | --- | --- |
+| Scaffold says the skill already exists | Safe overwrite guard | Read and improve the existing skill, or use `--force` only after explicit overwrite intent. |
+| Local validator reports a missing reference | `SKILL.md` names a file that was moved/never created | Fix the path or create the genuinely required file; do not add dummy files. |
+| Helper syntax check fails | Broken Python/JavaScript helper | Repair the helper before delivery and rerun validation. |
+| A CLI/package is missing | Setup assumed rather than detected | Use native/local fallback or show the smallest required install and ask permission. |
+| MCP connection fails | Server not running, endpoint/auth mismatch, timeout, or transient disconnect | Verify configured endpoint/auth without printing secrets, confirm the server is reachable/running, retry only safe transient failures, then use the documented fallback or report the blocker. |
+| API authentication fails | Missing/expired key or wrong provider configuration | Do not print the key. Identify the provider/config field, ask the user to repair credentials, and avoid repeated paid/erroring calls. |
+| External evaluator disagrees with Hermes behavior | Cross-runtime heuristic mismatch | Preserve correct Hermes behavior, document the portability difference, and only change behavior when it improves the real skill. |
+
+## Limitations
+
+- `/skill` can validate structure and deterministic helpers, but it cannot prove domain output quality without a realistic task or domain-specific QA.
+- A generic scaffold is only a starting point. It does not become production-grade until its routes, setup, fallbacks, and quality gate are made domain-specific.
+- Optional external evaluators can find portability/security issues but should not replace real end-to-end testing.
+- MCP/API integrations can fail outside the skill because of remote outages, permissions, billing, or credential state; the skill must surface those boundaries clearly.
+
+## Completion Contract
+
+A `/skill` job is done only when the promised files exist, the command has a clear trigger and deliverable, dependencies/fallbacks are documented, helper scripts have real invocation paths, consequential actions are permission-gated, failure modes are explicit, and available validation returns observable proof.
