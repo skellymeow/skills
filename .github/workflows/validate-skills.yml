@@ -9,17 +9,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Functional tests
         run: |
           python tests/test_init_audit.py
           python tests/test_skill_tools.py
-      - name: Validate published skills
+
+      - name: Validate published skills with local validator
         run: |
           for dir in skills/*; do
             if [ -f "$dir/SKILL.md" ]; then
               python skills/skill/scripts/validate.py "$dir"
+            fi
+          done
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install NVIDIA SkillEvaluator
+        run: uv tool install --python 3.13 "skillevaluator[all] @ git+https://github.com/NVIDIA/SkillEvaluator.git"
+
+      - name: NVIDIA SkillEvaluator Tier 1
+        run: |
+          set -euo pipefail
+          for dir in skills/*; do
+            if [ -f "$dir/SKILL.md" ]; then
+              echo "::group::NVIDIA quality-check $dir"
+              skillevaluator quality-check "$dir"
+              echo "::endgroup::"
+              echo "::group::NVIDIA deterministic validate $dir"
+              skillevaluator validate "$dir" --checks schema,pii,license,quality,unicode,lint --no-dedup -r cli
+              echo "::endgroup::"
             fi
           done
