@@ -34,14 +34,23 @@ jobs:
 
       - name: NVIDIA SkillEvaluator Tier 1
         run: |
-          set -euo pipefail
+          set -uo pipefail
+          rm -rf /tmp/nvidia-eval
+          mkdir -p /tmp/nvidia-eval/skills
+          status=0
           for dir in skills/*; do
             if [ -f "$dir/SKILL.md" ]; then
-              echo "::group::NVIDIA quality-check $dir"
-              skillevaluator quality-check "$dir"
+              name="$(basename "$dir")"
+              target="/tmp/nvidia-eval/skills/$name"
+              cp -R "$dir" "$target"
+
+              echo "::group::NVIDIA quality-check $name"
+              skillevaluator quality-check "$target" || status=1
               echo "::endgroup::"
-              echo "::group::NVIDIA deterministic validate $dir"
-              skillevaluator validate "$dir" --checks schema,pii,license,quality,unicode,lint --no-dedup -r cli
+
+              echo "::group::NVIDIA deterministic validate $name"
+              skillevaluator validate "$target" --checks schema,pii,license,quality,unicode,lint --no-dedup -r cli || status=1
               echo "::endgroup::"
             fi
           done
+          exit "$status"
