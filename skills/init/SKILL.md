@@ -6,7 +6,7 @@ author: skellymeow
 license: MIT
 platforms: [windows, macos, linux]
 metadata:
-  author: "skellymeow <skellymeow@users.noreply.github.com>"
+  author: "skellymeow <user@example.com>"
   tags: [onboarding, personalization, skill-mining, automation]
   hermes:
     tags: [onboarding, personalization, skill-mining, skill-creator, history, state-db]
