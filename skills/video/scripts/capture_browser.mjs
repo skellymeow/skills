@@ -101,10 +101,10 @@ async function main() {
   await sleep(700);
 
   await context.close();
-  await browser.close();
 
   const rawPath = path.join(tempDir, 'capture.webm');
   await video.saveAs(rawPath);
+  await browser.close();
 
   if (path.extname(outPath).toLowerCase() === '.webm') {
     fs.copyFileSync(rawPath, outPath);
