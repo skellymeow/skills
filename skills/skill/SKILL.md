@@ -1,11 +1,13 @@
 ---
 name: skill
-description: Build production-grade domain skills for Hermes Agent.
+description: Use to build and improve production-grade Hermes capability skills.
 version: 0.1.0
 author: skellymeow
 license: MIT
 platforms: [windows, macos, linux]
 metadata:
+  author: "skellymeow <skellymeow@users.noreply.github.com>"
+  tags: [skills, skill-creator, automation, developer-tools]
   hermes:
     tags: [skills, skill-creator, developer-tools, hermes, agents]
     requires_toolsets: [terminal]
