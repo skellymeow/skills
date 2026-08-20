@@ -1,11 +1,13 @@
 ---
 name: init
-description: Mine Hermes history and build tailor-made capability skills.
+description: Use to mine Hermes history and build tailored capability skills.
 version: 0.1.0
 author: skellymeow
 license: MIT
 platforms: [windows, macos, linux]
 metadata:
+  author: "skellymeow <skellymeow@users.noreply.github.com>"
+  tags: [onboarding, personalization, skill-mining, automation]
   hermes:
     tags: [onboarding, personalization, skill-mining, skill-creator, history, state-db]
     requires_toolsets: [terminal]
@@ -30,8 +32,6 @@ Run:
 ```bash
 python "${HERMES_SKILL_DIR}/scripts/audit_hermes.py"
 ```
-
-Treat the first stdout line as `AUDIT_DIR` for the rest of the run.
 
 The script resolves `$HERMES_HOME` or `~/.hermes`, reads `state.db` in SQLite read-only mode, and writes a sanitized private audit under:
 
@@ -93,8 +93,6 @@ Compare candidate domains against the installed skill inventory. Prefer:
 2. extending it with another internal route
 3. creating a new domain skill only when the capability is genuinely distinct
 
-If the evidence says the need is primarily **knowledge/source ingestion** rather than executable capability engineering, prefer Hermes' native `/learn` instead of manufacturing a larger skill unnecessarily.
-
 ## 4. Rank opportunities
 
 Create `skill-opportunities.md` in the private audit directory with evidence-backed candidates.
@@ -152,8 +150,6 @@ When writing a new local skill, default destination is:
 ```text
 $HERMES_HOME/skills/<command>/
 ```
-
-When modifying an existing skill, read it first and back up the current skill under `AUDIT_DIR/backups/<command>/` before a structural rewrite. Never use a force-overwrite scaffold against an existing skill.
 
 Do not publish the user's private skill or mined history unless explicitly asked.
 
