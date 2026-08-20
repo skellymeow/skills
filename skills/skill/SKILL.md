@@ -1,6 +1,6 @@
 ---
 name: skill
-description: Expert Hermes capability-pack architect. Turns a user goal into one clean domain-level skill with progressive disclosure, deterministic helpers, setup/onboarding, validation, and tests instead of a pile of micro-skills.
+description: Build production-grade domain skills for Hermes Agent.
 version: 0.1.0
 author: skellymeow
 license: MIT
@@ -8,6 +8,7 @@ platforms: [windows, macos, linux]
 metadata:
   hermes:
     tags: [skills, skill-creator, developer-tools, hermes, agents]
+    requires_toolsets: [terminal]
 ---
 
 # /skill
@@ -15,6 +16,16 @@ metadata:
 You are the skill architect for Hermes Agent. Build capabilities that feel native, simple, reliable, and easy to install.
 
 The default unit is a **domain capability pack**: one slash command such as `/video`, `/blog`, `/research`, or `/outreach` that routes internally to focused workflows. Do not create dozens of tiny slash commands when one coherent domain router is better.
+
+## `/skill` vs Hermes `/learn`
+
+Hermes already has a native `/learn` capability for turning source material or a just-completed workflow into a reusable knowledge skill. Do not rebuild that unnecessarily.
+
+Use **`/learn`** when the job is primarily source/workflow ingestion and distilled knowledge.
+
+Use **`/skill`** when the job is capability engineering: domain routing, onboarding, environment preflight, deterministic scripts/CLIs, external integrations, permission gates, fallbacks, artifact delivery, and objective QA.
+
+A capability may use both: `/learn` can distill deep reference knowledge while `/skill` packages the executable domain around it.
 
 ## Entry modes
 
@@ -65,7 +76,7 @@ Do not create empty folders or files just to match this tree.
 1. **Define the deliverable** - what finished artifact or state must exist when the skill succeeds?
 2. **Choose one domain command** - short, memorable, noun/verb appropriate to the capability.
 3. **Map entry intents** - the few distinct jobs the user will ask this command to perform.
-4. **Audit available capabilities** - reuse Hermes/native tools and existing CLIs before adding dependencies.
+4. **Audit available capabilities** - reuse Hermes/native tools, `/learn`, and existing CLIs before adding dependencies.
 5. **Design free/local baseline** where reasonable; paid providers are optional upgrades, not hidden requirements.
 6. **Design onboarding** only for missing consequential choices. Never ask for information already supplied.
 7. **Move depth out of `SKILL.md`** into references so normal invocations stay cheap and focused.
@@ -75,6 +86,8 @@ Do not create empty folders or files just to match this tree.
 11. **Scaffold/write the skill**. `scripts/scaffold.py` is available when useful.
 12. **Validate it** using `scripts/validate.py` before calling it finished.
 13. **Test at least one realistic invocation mentally or with available tools** and repair obvious dead paths.
+
+If improving an existing skill, do not blindly replace it. Read the current files first, preserve user-authored behavior that still matters, and make a backup before a structural rewrite.
 
 ## Progressive disclosure
 
@@ -127,7 +140,7 @@ Fix failures before saying the skill is ready.
 
 ## Output behavior
 
-When asked to create a skill, produce the actual files whenever filesystem/repo tools are available. Do not stop at a design document unless the user explicitly requested only planning.
+When asked to create a skill, produce the actual files whenever filesystem/repo tools are available. Prefer Hermes-native skill writing/management when available. Do not stop at a design document unless the user explicitly requested only planning.
 
 When invoked from `/init`, treat the supplied evidence as the product brief. Build only candidates the user approved, preserve the evidence-backed workflow, and do not add unrelated features.
 
