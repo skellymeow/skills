@@ -106,11 +106,19 @@ Generate local Kokoro narration with:
 python "${HERMES_SKILL_DIR}/scripts/kokoro_tts.py" --text-file script.txt --out narration.wav
 ```
 
-### Composition
-Prefer **HyperFrames** for bespoke motion graphics because it is HTML-native, deterministic, agent-friendly, and open source. FFmpeg remains the universal media glue/fallback. If the user's existing project already uses Remotion, using it is fine.
-
 ### Captions
-Use faster-whisper when precise timing is needed. SRT/word timings should drive designed captions in the composition, not raw default subtitles whenever presentation quality matters.
+Use faster-whisper when precise timing is needed:
+
+```bash
+python "${HERMES_SKILL_DIR}/scripts/transcribe.py" narration.wav --srt captions/captions.srt --json captions/words.json
+```
+
+Use the resulting word timings to drive designed captions in the composition whenever presentation quality matters.
+
+### Composition
+Read `references/composition.md` before authoring or rendering the final composition.
+
+Prefer **HyperFrames** for bespoke motion graphics because it is HTML-native, deterministic, agent-friendly, and open source. FFmpeg remains the universal media glue/fallback. If the user's existing project already uses Remotion, using it is fine.
 
 ### Assets
 Read `references/media-sources.md`. Use this preference order:
@@ -148,10 +156,10 @@ Keep source files editable and reproducible.
 
 ## 7. Quality gate
 
-Before delivery, read `references/quality.md` and run:
+Before delivery, read `references/quality.md` and run the QA script with the video's selected aspect ratio:
 
 ```bash
-python "${HERMES_SKILL_DIR}/scripts/qa_video.py" "video-output/<slug>/renders/final.mp4" --aspect 9:16 --json "video-output/<slug>/qa.json"
+python "${HERMES_SKILL_DIR}/scripts/qa_video.py" "video-output/<slug>/renders/final.mp4" --aspect <9:16-or-16:9> --json "video-output/<slug>/qa.json"
 ```
 
 Also visually inspect representative frames from the beginning, middle, and end when tools allow it. Fix obvious failures before presenting the result.
