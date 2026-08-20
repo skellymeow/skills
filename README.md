@@ -2,17 +2,25 @@
 
 High-leverage capability packs for Hermes Agent. Each pack is one clean slash command backed by focused workflows, references, and deterministic helper scripts.
 
-## Install
+## Install `/video`
+
+One command:
 
 ```bash
-hermes skills tap add skellymeow/skills
-hermes skills install skellymeow/skills/video
+hermes skills install skellymeow/skills/skills/video
 ```
 
 Start a new Hermes session, then run:
 
 ```text
 /video
+```
+
+### Optional: subscribe to the whole skill repo
+
+```bash
+hermes skills tap add skellymeow/skills
+hermes skills install skellymeow/skills/video
 ```
 
 ## Skills
