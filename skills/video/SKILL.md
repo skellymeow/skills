@@ -6,7 +6,7 @@ author: skellymeow
 license: MIT
 platforms: [windows, macos, linux]
 metadata:
-  author: "skellymeow <skellymeow@users.noreply.github.com>"
+  author: "skellymeow <user@example.com>"
   tags: [video, shorts, marketing, ffmpeg, automation]
   hermes:
     tags: [video, shorts, reels, tiktok, youtube, marketing, ffmpeg, playwright, kokoro, hyperframes]
