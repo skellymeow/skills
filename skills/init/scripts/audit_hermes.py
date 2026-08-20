@@ -9,7 +9,6 @@ import os
 import re
 import sqlite3
 import sys
-from collections import Counter
 from pathlib import Path
 from typing import Iterable
 
@@ -25,7 +24,7 @@ SECRET_PATTERNS = [
     re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
     re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}\b"),
     re.compile(r"\bsk-[A-Za-z0-9_-]{16,}\b"),
-    re.compile(r"(?i)\b([A-Z][A-Z0-9_]*(?:API_?KEY|TOKEN|SECRET|PASSWORD|PASS|CREDENTIAL)[A-Z0-9_]*)\s*([=:])\s*([^\s,;]+)"),
+    re.compile(r"(?i)\b((?:[A-Z0-9_]*)(?:API_?KEY|TOKEN|SECRET|PASSWORD|PASS|CREDENTIAL)(?:[A-Z0-9_]*))\s*([=:])\s*([^\s,;]+)"),
     re.compile(r"(?i)([?&](?:api_?key|token|secret|auth|access_token)=)[^&#\s]+"),
 ]
 
@@ -123,28 +122,27 @@ def read_profile(home: Path) -> tuple[str, list[dict]]:
 
 
 def installed_skills(home: Path) -> list[dict]:
-    roots = [home / "skills"]
     results: list[dict] = []
-    for root in roots:
-        if not root.is_dir():
+    root = home / "skills"
+    if not root.is_dir():
+        return results
+    for child in sorted(root.iterdir(), key=lambda p: p.name.lower()):
+        if not child.is_dir():
             continue
-        for child in sorted(root.iterdir(), key=lambda p: p.name.lower()):
-            if not child.is_dir():
-                continue
-            skill_md = child / "SKILL.md"
-            item = {"name": child.name, "path": safe_path(str(child)), "description": None}
-            if skill_md.is_file():
-                try:
-                    text = skill_md.read_text(encoding="utf-8", errors="replace")
-                    m_name = re.search(r"(?m)^name:\s*(.+?)\s*$", text)
-                    m_desc = re.search(r"(?m)^description:\s*(.+?)\s*$", text)
-                    if m_name:
-                        item["name"] = m_name.group(1).strip().strip("\"'")
-                    if m_desc:
-                        item["description"] = redact(m_desc.group(1).strip().strip("\"'"))[:1000]
-                except OSError:
-                    pass
-            results.append(item)
+        skill_md = child / "SKILL.md"
+        item = {"name": child.name, "path": safe_path(str(child)), "description": None}
+        if skill_md.is_file():
+            try:
+                text = skill_md.read_text(encoding="utf-8", errors="replace")
+                m_name = re.search(r"(?m)^name:\s*(.+?)\s*$", text)
+                m_desc = re.search(r"(?m)^description:\s*(.+?)\s*$", text)
+                if m_name:
+                    item["name"] = m_name.group(1).strip().strip("\"'")
+                if m_desc:
+                    item["description"] = redact(m_desc.group(1).strip().strip("\"'"))[:1000]
+            except OSError:
+                pass
+        results.append(item)
     return results
 
 
@@ -216,11 +214,13 @@ def export_db(db_path: Path, out_dir: Path, chunk_chars: int, days: int) -> dict
         mcols = columns(conn, "messages")
 
         since = None
-        if days > 0:
+        if days > 0 and "started_at" in scols:
             since = dt.datetime.now(tz=dt.timezone.utc).timestamp() - days * 86400
+        elif days > 0:
+            result["warnings"].append("--days ignored because sessions.started_at is unavailable")
 
-        where_session = " WHERE started_at >= ?" if since is not None and "started_at" in scols else ""
-        params = (since,) if where_session else ()
+        where_session = " WHERE started_at >= ?" if since is not None else ""
+        params = (since,) if since is not None else ()
         result["sessions"] = int(conn.execute(f"SELECT COUNT(*) FROM sessions{where_session}", params).fetchone()[0])
 
         if "source" in scols:
@@ -242,11 +242,8 @@ def export_db(db_path: Path, out_dir: Path, chunk_chars: int, days: int) -> dict
             ).fetchone()
             result["time_start"], result["time_end"] = iso_ts(row["lo"]), iso_ts(row["hi"])
 
-        join_filter = ""
-        qparams: tuple = ()
-        if since is not None:
-            join_filter = " AND s.started_at >= ?"
-            qparams = (since,)
+        join_filter = " AND s.started_at >= ?" if since is not None else ""
+        qparams = (since,) if since is not None else ()
 
         result["messages"] = int(
             conn.execute(
@@ -298,6 +295,7 @@ def export_db(db_path: Path, out_dir: Path, chunk_chars: int, days: int) -> dict
             if where_session:
                 query += where_session
             query += " ORDER BY started_at ASC" if "started_at" in scols else ""
+
             def session_rows():
                 for row in conn.execute(query, params):
                     item = dict(row)
@@ -311,6 +309,7 @@ def export_db(db_path: Path, out_dir: Path, chunk_chars: int, days: int) -> dict
                     if "ended_at" in item:
                         item["ended_at_iso"] = iso_ts(item["ended_at"])
                     yield item
+
             write_jsonl(out_dir / "sessions.jsonl", session_rows())
 
         select_parts = [
@@ -334,7 +333,7 @@ def export_db(db_path: Path, out_dir: Path, chunk_chars: int, days: int) -> dict
             + " FROM messages m JOIN sessions s ON s.id=m.session_id "
             + "WHERE m.role IN ('user','assistant') AND m.content IS NOT NULL"
             + join_filter
-            + " ORDER BY m.timestamp ASC, m.id ASC"
+            + (" ORDER BY m.timestamp ASC, m.id ASC" if "timestamp" in mcols else " ORDER BY m.id ASC")
         )
 
         chunks: list[str] = []
@@ -419,7 +418,7 @@ def main() -> int:
     p.add_argument("--chunk-chars", type=int, default=80_000, help="approximate max characters per history chunk")
     args = p.parse_args()
 
-    home = (args.home.expanduser().resolve() if args.home else hermes_home_from_env())
+    home = args.home.expanduser().resolve() if args.home else hermes_home_from_env()
     if args.out:
         out_dir = args.out.expanduser().resolve()
     else:
@@ -461,7 +460,10 @@ def main() -> int:
     )
 
     print(str(out_dir))
-    print(f"sessions={db.get('sessions', 0)} messages={db.get('messages', 0)} exported={db.get('visible_messages_exported', 0)} chunks={len(db.get('chunks', []))}")
+    print(
+        f"sessions={db.get('sessions', 0)} messages={db.get('messages', 0)} "
+        f"exported={db.get('visible_messages_exported', 0)} chunks={len(db.get('chunks', []))}"
+    )
     for warning in db.get("warnings", []):
         print(f"warning: {warning}", file=sys.stderr)
     return 0
