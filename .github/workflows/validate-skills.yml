@@ -1,0 +1,25 @@
+name: validate-skills
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Functional tests
+        run: |
+          python tests/test_init_audit.py
+          python tests/test_skill_tools.py
+      - name: Validate published skills
+        run: |
+          for dir in skills/*; do
+            if [ -f "$dir/SKILL.md" ]; then
+              python skills/skill/scripts/validate.py "$dir"
+            fi
+          done
