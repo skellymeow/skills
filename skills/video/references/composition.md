@@ -6,10 +6,20 @@ Use this when building the final edit.
 
 HyperFrames is preferred for agent-authored motion design because the composition is ordinary HTML/CSS/JavaScript and renders deterministically to MP4.
 
-From the video's `composition/` directory:
+Create a blank project explicitly so agent/non-TTY runs never depend on an interactive picker.
+
+### 9:16
 
 ```bash
-npx hyperframes init .
+npx hyperframes init my-video --non-interactive --example blank --resolution portrait
+cd my-video
+```
+
+### 16:9
+
+```bash
+npx hyperframes init my-video --non-interactive --example blank --resolution landscape
+cd my-video
 ```
 
 Author the composition around the actual storyboard and assets. Do not blindly assemble catalog blocks. Reuse engine mechanics, not a frozen visual identity.
@@ -34,10 +44,26 @@ Preview during iteration:
 npx hyperframes preview
 ```
 
-Render when ready:
+Before final render, run the fast structural/runtime/layout gate and inspect representative snapshots:
 
 ```bash
-npx hyperframes render
+npx hyperframes lint
+npx hyperframes check
+npx hyperframes snapshot --at 1,3,5
+```
+
+Choose snapshot timestamps that actually cover the beginning, middle, and end of the composition rather than blindly using `1,3,5` for every duration.
+
+Render the final video explicitly:
+
+```bash
+npx hyperframes render --quality high --fps 30 --output final.mp4
+```
+
+For pixel-consistent reproducible rendering when Docker is available:
+
+```bash
+npx hyperframes render --docker --strict --output final.mp4
 ```
 
 Then normalize the final deliverable with FFmpeg if needed:
